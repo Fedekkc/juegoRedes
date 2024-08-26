@@ -27,6 +27,9 @@ namespace juegoRedes
 
         protected override void Initialize()
         {
+
+
+
             base.Initialize();
         }
 
