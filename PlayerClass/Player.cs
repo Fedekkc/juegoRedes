@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+
 using System.Collections.Generic;
 
 namespace juegoRedes.PlayerClass
 {
-    internal class Player
+    public class Player
     {
         // Atributos
 
@@ -24,13 +26,14 @@ namespace juegoRedes.PlayerClass
         private int x;
         private int y;
 
-        public Player(string name, int x, int y, Texture2D texture, int framesPerRow, float frameTime, int totalRows)
+        public Player(string name, int x, int y, Texture2D texture, int framesPerRow, int totalRows, float frameTime = 0.08f)
         {
             // Constructor
             this.name = name;
             this.x = x;
             this.y = y;
             this.texture = texture;
+
 
             // Inicializa las animaciones
             walkUpAnim = new PlayerAnimation(texture, framesPerRow, frameTime, 6); // Asumiendo que la primera fila es para caminar hacia arriba
@@ -41,27 +44,27 @@ namespace juegoRedes.PlayerClass
             currentAnimation = walkDownAnim; // Animación inicial
         }
 
-        public void movePlayer(string direction)
+        public void movePlayer(string direction, int speed = 3)
         {
             if (direction == "up")
             {
                 currentAnimation = walkUpAnim;
-                this.y -= 1;
+                this.y -= speed;
             }
             else if (direction == "down")
             {
                 currentAnimation = walkDownAnim;
-                this.y += 1;
+                this.y += speed;
             }
             else if (direction == "left")
             {
                 currentAnimation = walkLeftAnim;
-                this.x -= 1;
+                this.x -= speed;
             }
             else if (direction == "right")
             {
                 currentAnimation = walkRightAnim;
-                this.x += 1;
+                this.x += speed;
             }
         }
 
@@ -74,6 +77,26 @@ namespace juegoRedes.PlayerClass
         public void update(float deltaTime)
         {
             currentAnimation.update(deltaTime);
+
+            var keyboardState = Keyboard.GetState();
+
+            if (keyboardState.IsKeyDown(Keys.Up))
+            {
+                movePlayer("up");
+            }
+            else if (keyboardState.IsKeyDown(Keys.Down))
+            {
+                movePlayer("down");
+            }
+            else if (keyboardState.IsKeyDown(Keys.Left))
+            {
+                movePlayer("left");
+            }
+            else if (keyboardState.IsKeyDown(Keys.Right))
+            {
+                movePlayer("right");
+            }
         }
+
     }
 }

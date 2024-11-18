@@ -21,7 +21,7 @@ namespace juegoRedes.PlayerClass
             _frames = frames;
             this.frameTime = frameTime;
             var width = texture.Width / frames;
-            var height = texture.Height / totalRows; // totalRows es el número total de filas en tu sprites.png
+            var height = texture.Height / totalRows; // totalRows es el número total de filas en sprites.png
             for (var i = 0; i < frames; i++)
             {
                 _sourceRectangles.Add(new Rectangle(i * width, row * height, width, height));

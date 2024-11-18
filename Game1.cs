@@ -1,7 +1,10 @@
 ﻿using juegoRedes.PlayerClass;
+using juegoRedes.Stages;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
+using System.Collections.Generic;
 
 namespace juegoRedes
 {
@@ -10,11 +13,16 @@ namespace juegoRedes
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Texture2D background;
-
+        private Texture2D playerTexture;
+        private Texture2D startButton;
         private Player pj;
+        private SceneManager sceneManager;  // Gestor de escenas
 
         public const int SCREEN_WIDTH = 1920;
         public const int SCREEN_HEIGHT = 1080;
+
+        private Dialog dialog;       // Objeto para manejar el diálogo
+        private SpriteFont font;     // Fuente para el texto del diálogo
 
         public Game1()
         {
@@ -25,53 +33,60 @@ namespace juegoRedes
             IsMouseVisible = true;
         }
 
-        protected override void Initialize()
-        {
-
-
-
-            base.Initialize();
-        }
-
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // Carga la textura del background y del player
-            background = Content.Load<Texture2D>("background");
-            Texture2D playerTexture = Content.Load<Texture2D>("player");
+            font = Content.Load<SpriteFont>("Arial");
+            background = Content.Load<Texture2D>("intro");  // Fondo de la intro
+            startButton = Content.Load<Texture2D>("newGameButton");  // Cargar el botón de "Nueva Partida"
+            playerTexture = Content.Load<Texture2D>("player");  
 
-            // Inicializa al jugador con su textura y posición inicial
-            pj = new Player("Player1", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, playerTexture, 10, 0.1f, 4);
+            // Inicializa el diálogo
+            string text = "Bienvenido al mundo del juego. Presiona 'Nueva Partida' para comenzar.";
+            Vector2 dialogPosition = new Vector2(100, 800); // Posición del texto
+            dialog = new Dialog("Bienvenida", text, font, dialogPosition, 50);
+            dialog.ShowLetterByLetter();  // Muestra el texto letra por letra
+
+            // Crear las escenas
+            sceneManager = new SceneManager();
+
+            // Escena de introducción
+            Scene introScene = new Scene("intro", background, new List<Clue>(), new List<Dictionary<string, object>>(), new List<Dictionary<string, object>>(), null, false);
+            sceneManager.AddScene(introScene);
+
+            // Escena del juego
+            Player player = new Player("PlayerName", 100, 100, playerTexture, 10, 10);
+
+            Scene gameScene = new Scene("game", null, new List<Clue>(), new List<Dictionary<string, object>>(), new List<Dictionary<string, object>>(), player, false);
+            sceneManager.AddScene(gameScene);
+
+            // Iniciar con la escena de introducción
+            sceneManager.ChangeScene("intro");
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            // Salir del juego si se presiona Escape
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // Maneja la entrada del jugador
-            var keyboardState = Keyboard.GetState();
+            // Actualizar la escena activa
+            sceneManager.Update(gameTime);
 
-            if (keyboardState.IsKeyDown(Keys.Up))
+            // Si estamos en la escena de introducción, detectar clic en el botón de inicio
+            if (sceneManager.CurrentScene.getUid() == "intro")
             {
-                pj.movePlayer("up");
+                MouseState mouseState = Mouse.GetState();
+                if (startButton != null && new Rectangle(500, 600, startButton.Width, startButton.Height).Contains(mouseState.X, mouseState.Y))
+                {
+                    if (mouseState.LeftButton == ButtonState.Pressed)
+                    {
+                        // Cambiar a la escena del juego al presionar el botón
+                        sceneManager.ChangeScene("game");
+                    }
+                }
             }
-            else if (keyboardState.IsKeyDown(Keys.Down))
-            {
-                pj.movePlayer("down");
-            }
-            else if (keyboardState.IsKeyDown(Keys.Left))
-            {
-                pj.movePlayer("left");
-            }
-            else if (keyboardState.IsKeyDown(Keys.Right))
-            {
-                pj.movePlayer("right");
-            }
-
-            // Actualiza el jugador
-            pj.update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
             base.Update(gameTime);
         }
@@ -82,11 +97,14 @@ namespace juegoRedes
 
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 
-            // Dibujo el background
-            _spriteBatch.Draw(background, new Rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), Color.White);
+            // Dibujar la escena activa
+            sceneManager.Draw(_spriteBatch);
 
-            // Dibujo al jugador
-            pj.Draw(_spriteBatch);
+            // Si estamos en la escena de introducción, dibujar el botón de "Nueva Partida"
+            if (sceneManager.CurrentScene.getUid() == "intro")
+            {
+                _spriteBatch.Draw(startButton, new Vector2(500, 600), Color.White);
+            }
 
             _spriteBatch.End();
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace juegoRedes
 {
-    internal class Clue
+    public class Clue
     {
         private string name;
         private string description;
