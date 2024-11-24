@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using juegoRedes.PlayerClass;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -22,6 +23,8 @@ namespace juegoRedes.Stages
         private PlayerClass.Player player;
         private bool isLocked = true;
         private bool isActive = false;
+        public List<InteractionZone> InteractionZones { get; set; } = new List<InteractionZone>();
+
 
         // Constructor con parámetros opcionales
         public Scene(
@@ -95,6 +98,44 @@ namespace juegoRedes.Stages
                 Console.WriteLine("ASD " + e);
             }
 
+        }
+
+        public Rectangle GetSpriteBounds(Dictionary<string, object> sprite)
+        {
+            if (sprite.ContainsKey("texture") && sprite.ContainsKey("position"))
+            {
+                Texture2D texture = (Texture2D)sprite["texture"];
+                Vector2 position = (Vector2)sprite["position"];
+                return new Rectangle((int)position.X, (int)position.Y, texture.Width, texture.Height);
+            }
+            
+            return Rectangle.Empty;
+        }
+
+        public void CheckCollisions(Player player)
+        {
+            Rectangle playerBounds = player.Bounds;
+
+            foreach (var sprite in sprites)
+            {
+                Rectangle spriteBounds = GetSpriteBounds(sprite);
+
+                // Si los rectángulos del jugador y el sprite se superponen
+                if (playerBounds.Intersects(spriteBounds))
+                {
+                    Console.WriteLine($"Colisión detectada con sprite en posición {spriteBounds.Location}");
+                    HandleCollision(player, sprite); // Maneja la colisión (ver siguiente paso)
+                }
+            }
+        }
+
+        private void HandleCollision(Player player, Dictionary<string, object> sprite)
+        {
+          
+            if (sprite.ContainsKey("name") && sprite["name"].ToString() == "bartender")
+            {
+                Console.WriteLine("Colisión con el bartender. ¡Inicia diálogo!");
+            }
         }
 
 

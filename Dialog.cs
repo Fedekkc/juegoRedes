@@ -16,8 +16,9 @@ namespace juegoRedes
         private bool isDisplaying;   // Indica si el texto se está mostrando actualmente
         private int charIndex;       // Índice del carácter actual
         private int delay;           // Retardo entre cada letra en milisegundos
+        private Texture2D dialogSquare; 
 
-        public Dialog(string title, string text, SpriteFont font, Vector2 position, int delay = 50)
+        public Dialog(string title, string text, SpriteFont font, Vector2 position, int delay = 50, Texture2D dialogSquare = null)
         {
             this.title = title;
             this.text = text;
@@ -26,6 +27,7 @@ namespace juegoRedes
             this.delay = delay;
             this.isDisplaying = false;
             this.charIndex = 0;
+
         }
 
         // Lógica para mostrar el texto letra por letra
@@ -44,6 +46,11 @@ namespace juegoRedes
 
             isDisplaying = false; // Termina el efecto
         }
+
+        public void SetText(string text)
+        {
+            this.text = text;
+        }   
 
         // Método para dibujar el texto
         public void Draw(SpriteBatch spriteBatch)

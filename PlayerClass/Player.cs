@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-
+using System;
 using System.Collections.Generic;
 
 namespace juegoRedes.PlayerClass
@@ -21,12 +21,13 @@ namespace juegoRedes.PlayerClass
         public PlayerAnimation walkRightAnim;
 
         private PlayerAnimation currentAnimation;
+        private string currentDirection;
 
         // coordenadas
         private int x;
         private int y;
 
-        public Player(string name, int x, int y, Texture2D texture, int framesPerRow, int totalRows, float frameTime = 0.08f)
+        public Player(string name, int x, int y, Texture2D texture, int framesPerRow, float frameTime = 0.08f)
         {
             // Constructor
             this.name = name;
@@ -36,67 +37,134 @@ namespace juegoRedes.PlayerClass
 
 
             // Inicializa las animaciones
-            walkUpAnim = new PlayerAnimation(texture, framesPerRow, frameTime, 6); // Asumiendo que la primera fila es para caminar hacia arriba
-            walkDownAnim = new PlayerAnimation(texture, framesPerRow, frameTime, 4); // Asumiendo que la segunda fila es para caminar hacia abajo
-            walkLeftAnim = new PlayerAnimation(texture, framesPerRow, frameTime, 5); // Asumiendo que la tercera fila es para caminar hacia la izquierda
-            walkRightAnim = new PlayerAnimation(texture, framesPerRow, frameTime, 7); // Asumiendo que la cuarta fila es para caminar hacia la derecha
+            walkUpAnim = new PlayerAnimation(texture, framesPerRow, frameTime, 1); // Asumiendo que la primera fila es para caminar hacia arriba
+            walkDownAnim = new PlayerAnimation(texture, framesPerRow, frameTime, 0); // Asumiendo que la segunda fila es para caminar hacia abajo
+            walkLeftAnim = new PlayerAnimation(texture, framesPerRow, frameTime, 2); // Asumiendo que la tercera fila es para caminar hacia la izquierda
+            walkRightAnim = new PlayerAnimation(texture, framesPerRow, frameTime, 3); // Asumiendo que la cuarta fila es para caminar hacia la derecha
 
             currentAnimation = walkDownAnim; // Animación inicial
+            currentDirection = "down"; // Dirección inicial
         }
 
-        public void movePlayer(string direction, int speed = 3)
+        public void movePlayer(string direction, int speed = 3, int screenWidth = 400, int screenHeight = 400, List<Rectangle> obstacles = null)
         {
+            Rectangle futureBounds = this.Bounds; // Usamos los bounds actuales del jugador
+
             if (direction == "up")
             {
+                futureBounds.Y -= speed; // Calcula la nueva posición futura
                 currentAnimation = walkUpAnim;
-                this.y -= speed;
             }
             else if (direction == "down")
             {
+                futureBounds.Y += speed; // Calcula la nueva posición futura
                 currentAnimation = walkDownAnim;
-                this.y += speed;
             }
             else if (direction == "left")
             {
+                futureBounds.X -= speed; // Calcula la nueva posición futura
                 currentAnimation = walkLeftAnim;
-                this.x -= speed;
             }
             else if (direction == "right")
             {
+                futureBounds.X += speed; // Calcula la nueva posición futura
                 currentAnimation = walkRightAnim;
-                this.x += speed;
+            }
+
+            // Si hay obstáculos y el jugador está colisionando, no se mueve
+            if (obstacles != null && !IsCollidingWithObstacles(futureBounds, obstacles))
+            {
+                // Solo actualizamos la posición si no colisiona
+                this.x = futureBounds.X;
+                this.y = futureBounds.Y;
+            }
+
+            // Limita la posición del jugador a no salir de la pantalla
+            this.x = Math.Clamp(this.x, 0, screenWidth - currentAnimation.CurrentFrameRectangle.Width);
+            this.y = Math.Clamp(this.y, 0, screenHeight - currentAnimation.CurrentFrameRectangle.Height);
+        }
+
+        private bool IsCollidingWithObstacles(Rectangle futureBounds, List<Rectangle> obstacles)
+        {
+            foreach (var obstacle in obstacles)
+            {
+                if (futureBounds.Intersects(obstacle)) // Si colisiona con cualquier obstáculo
+                {
+                    // excluir la colisión con el background
+                    if (obstacle.Width == 400 && obstacle.Height == 400)
+                    {
+                        continue;
+                    }
+
+                    return true;
+                }
+            }
+            return false; // No hay colisión
+        }
+
+        public void ResetPosition()
+        {
+            // Restablece la posición del jugador
+            this.x = 0;
+            this.y = 0;
+        }
+
+        public bool isColliding(Rectangle other)
+        {
+            return Bounds.Intersects(other);
+        }
+
+        public Rectangle Bounds
+        {
+            get
+            {
+                return new Rectangle((int)x, (int)y, texture.Width, texture.Height);
             }
         }
+
 
         public void Draw(SpriteBatch spriteBatch)
         {
             Vector2 position = new Vector2(this.x, this.y);
-            currentAnimation.Draw(spriteBatch, position);
+
+            // Si el jugador está quieto, mostrar el primer frame
+            if (Keyboard.GetState().GetPressedKeys().Length == 0)
+            {
+                // Mantener el primer frame de la animación de la dirección actual
+                currentAnimation.Draw(spriteBatch, position, staticFrame: true);
+            }
+            else
+            {
+                // Animación normal en movimiento
+                currentAnimation.Draw(spriteBatch, position);
+            }
         }
 
-        public void update(float deltaTime)
+        public void Update(float deltaTime, List<Rectangle> obstacles)
         {
+            Console.WriteLine("Update player");
             currentAnimation.update(deltaTime);
 
             var keyboardState = Keyboard.GetState();
 
             if (keyboardState.IsKeyDown(Keys.Up))
             {
-                movePlayer("up");
+                movePlayer("up", obstacles: obstacles);
             }
             else if (keyboardState.IsKeyDown(Keys.Down))
             {
-                movePlayer("down");
+                movePlayer("down", obstacles: obstacles);
             }
             else if (keyboardState.IsKeyDown(Keys.Left))
             {
-                movePlayer("left");
+                movePlayer("left", obstacles: obstacles);
             }
             else if (keyboardState.IsKeyDown(Keys.Right))
             {
-                movePlayer("right");
+                movePlayer("right", obstacles: obstacles);
             }
         }
+
 
     }
 }

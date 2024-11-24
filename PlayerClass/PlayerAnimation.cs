@@ -13,19 +13,24 @@ namespace juegoRedes.PlayerClass
         private readonly float frameTime;
         private float _frameTimeLeft;
         private bool _active = true;
-        private readonly int totalRows = 8;
+        private readonly int totalColumns = 4;
 
-        public PlayerAnimation(Texture2D texture, int frames, float frameTime, int row)
+        public PlayerAnimation(Texture2D texture, int frames, float frameTime, int column)
         {
             _texture = texture;
             _frames = frames;
             this.frameTime = frameTime;
-            var width = texture.Width / frames;
-            var height = texture.Height / totalRows; // totalRows es el número total de filas en sprites.png
+
+            // Tamaño de cada frame
+            var width = texture.Width / totalColumns; // Total de columnas
+            var height = texture.Height / 3; // Total de filas (una por dirección)
+
+            // Calcular los rectángulos fuente para la columna específica
             for (var i = 0; i < frames; i++)
             {
-                _sourceRectangles.Add(new Rectangle(i * width, row * height, width, height));
+                _sourceRectangles.Add(new Rectangle(column * width, i * height, width, height));
             }
+
             _frameTimeLeft = frameTime; // Inicializa el tiempo del primer frame
         }
 
@@ -66,9 +71,23 @@ namespace juegoRedes.PlayerClass
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch, Vector2 position)
+        public void Draw(SpriteBatch spriteBatch, Vector2 position, bool staticFrame = false)
         {
-            spriteBatch.Draw(_texture, position, _sourceRectangles[frame], Color.White);
+            Rectangle sourceRectangle;
+
+            if (staticFrame)
+            {
+                // Usar el primer frame de la animación
+                sourceRectangle = _sourceRectangles[0];
+            }
+            else
+            {
+                // Usar el frame actual de la animación
+                sourceRectangle = _sourceRectangles[frame];
+            }
+
+            spriteBatch.Draw(_texture, position, sourceRectangle, Color.White);
         }
+
     }
 }

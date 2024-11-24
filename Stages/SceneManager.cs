@@ -48,18 +48,14 @@ namespace juegoRedes.Stages
             {
                 try
                 {
-                    Console.WriteLine("lautaro puta2");
-                    spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 
                     // Dibujar el fondo de la escena
                     spriteBatch.Draw(CurrentScene.getBackground(), Vector2.Zero, Color.White);
 
-                    // Dibujar los demás elementos de la escena
-                    // Asegúrate de que CurrentScene.Draw no llame a Begin() nuevamente
                     Console.WriteLine("lautaro puta");
                     CurrentScene.Draw(spriteBatch);
 
-                    spriteBatch.End();
+                    
                 }
                 catch (Exception e)
                 {

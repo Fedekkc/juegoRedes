@@ -5,6 +5,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.IO;
+
+
 
 namespace juegoRedes
 {
@@ -12,17 +15,21 @@ namespace juegoRedes
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        private Texture2D background;
+        private Texture2D bar;
         private Texture2D playerTexture;
         private Texture2D startButton;
-        private Player pj;
+        private Texture2D bartender;
+        private Texture2D mostrador;
+        private Texture2D door;
+        private Texture2D dialogSquare;
+        Player player;
         private SceneManager sceneManager;  // Gestor de escenas
-
-        public const int SCREEN_WIDTH = 1920;
-        public const int SCREEN_HEIGHT = 1080;
-
+        private StreamWriter logWriter;    // Escritor de log
+        public const int SCREEN_WIDTH = 400;
+        public const int SCREEN_HEIGHT = 400;
         private Dialog dialog;       // Objeto para manejar el diálogo
         private SpriteFont font;     // Fuente para el texto del diálogo
+        
 
         public Game1()
         {
@@ -38,58 +45,149 @@ namespace juegoRedes
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             font = Content.Load<SpriteFont>("Arial");
-            background = Content.Load<Texture2D>("intro");  // Fondo de la intro
-            startButton = Content.Load<Texture2D>("newGameButton");  // Cargar el botón de "Nueva Partida"
-            playerTexture = Content.Load<Texture2D>("player");  
+            bar = Content.Load<Texture2D>("bar");  
+            startButton = Content.Load<Texture2D>("newGameButton");  
+            playerTexture = Content.Load<Texture2D>("player");
+            bartender = Content.Load<Texture2D>("barguy_front");
+            door = Content.Load<Texture2D>("alfombra");
+            mostrador = Content.Load<Texture2D>("barpart");
+            dialogSquare = Content.Load<Texture2D>("dialogSquare");
 
-            // Inicializa el diálogo
             string text = "Bienvenido al mundo del juego. Presiona 'Nueva Partida' para comenzar.";
-            Vector2 dialogPosition = new Vector2(100, 800); // Posición del texto
+            Vector2 dialogPosition = new Vector2(100, 200); // Posición del texto
             dialog = new Dialog("Bienvenida", text, font, dialogPosition, 50);
-            dialog.ShowLetterByLetter();  // Muestra el texto letra por letra
+            dialog.Draw(_spriteBatch);
 
-            // Crear las escenas
+            string path = Directory.GetCurrentDirectory();
+            logWriter = new StreamWriter( path + "../../../../Log/Log.log", true);
+
+
+
+            // Definición de las escenas
             sceneManager = new SceneManager();
 
-            // Escena de introducción
-            Scene introScene = new Scene("intro", background, new List<Clue>(), new List<Dictionary<string, object>>(), new List<Dictionary<string, object>>(), null, false);
-            sceneManager.AddScene(introScene);
 
-            // Escena del juego
-            Player player = new Player("PlayerName", 100, 100, playerTexture, 10, 10);
+
+
+            List<Dictionary<string, object>> sprites = new List<Dictionary<string, object>>
+            {
+                new Dictionary<string, object>
+                {
+                    { "texture", bartender },
+                    { "position", new Vector2(130, 70) },
+                    { "name", "bartender" },
+                },
+                new Dictionary<string, object>
+                {
+                    { "texture", mostrador },
+                    { "position", new Vector2(50, 90) },
+                    { "name", "mostrador" },
+                }
+            };
+
+            List<Dictionary<string, object>> doors = new List<Dictionary<string, object>>
+            {
+                new Dictionary<string, object>
+                {
+                    { "texture", door },
+                    { "position", new Vector2(200, 370) },
+                    { "name", "door_bar" },
+                    { "scene", "bar" },
+                }
+            };
+
+            Scene introScene = new Scene("bar", bar, new List<Clue>(), sprites, doors, null, false);
+            sceneManager.AddScene(introScene);
+            sceneManager.ChangeScene("bar");
+            // Definir las zonas de interacción del bar
+            List<InteractionZone> interactionZones = new List<InteractionZone>
+            {
+                new InteractionZone(new Rectangle(130, 70, bartender.Width, bartender.Height), "talkToBartender"),
+                new InteractionZone(new Rectangle(200, 370, door.Width, door.Height), "exitBar"),
+                new InteractionZone(new Rectangle(50, 90, mostrador.Width, mostrador.Height), "inspectCounter")
+            };
+
+            // Asignar las zonas de interacción a la escena actual
+            sceneManager.CurrentScene.InteractionZones = interactionZones;
+
+            player = new Player("PlayerName", 200, 200, playerTexture, 3,0.1f);
 
             Scene gameScene = new Scene("game", null, new List<Clue>(), new List<Dictionary<string, object>>(), new List<Dictionary<string, object>>(), player, false);
             sceneManager.AddScene(gameScene);
 
-            // Iniciar con la escena de introducción
-            sceneManager.ChangeScene("intro");
+            sceneManager.ChangeScene("bar");
         }
+
 
         protected override void Update(GameTime gameTime)
         {
-            // Salir del juego si se presiona Escape
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            logWriter.WriteLine("Update");
 
-            // Actualizar la escena activa
-            sceneManager.Update(gameTime);
+            List<Rectangle> obstacles = new List<Rectangle>();
 
-            // Si estamos en la escena de introducción, detectar clic en el botón de inicio
-            if (sceneManager.CurrentScene.getUid() == "intro")
+            foreach (var sprite in sceneManager.CurrentScene.sprites)
             {
-                MouseState mouseState = Mouse.GetState();
-                if (startButton != null && new Rectangle(500, 600, startButton.Width, startButton.Height).Contains(mouseState.X, mouseState.Y))
+                if (sprite.ContainsKey("position") && sprite.ContainsKey("texture"))
                 {
-                    if (mouseState.LeftButton == ButtonState.Pressed)
-                    {
-                        // Cambiar a la escena del juego al presionar el botón
-                        sceneManager.ChangeScene("game");
-                    }
+                    Texture2D texture = (Texture2D)sprite["texture"];
+                    Vector2 position = (Vector2)sprite["position"];
+                    obstacles.Add(new Rectangle((int)position.X, (int)position.Y, texture.Width, texture.Height));
                 }
             }
 
+
+
+            // Llamar a Update del jugador pasando los obstáculos
+            player.Update((float)gameTime.ElapsedGameTime.TotalSeconds, obstacles);
+
+            // Verificar si se presiona Escape para salir
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
+                logWriter.Close();
+                Exit();
+            }
+
+            // Actualizar la escena actual
+            sceneManager.Update(gameTime);
+            // Verificar interacciones
+            foreach (var zone in sceneManager.CurrentScene.InteractionZones)
+            {
+                if (zone.Area.Intersects(player.Bounds))
+                {
+                    HandleInteraction(zone.Action);
+                }
+            }
+
+
+
+
             base.Update(gameTime);
         }
+        private void HandleInteraction(string action)
+        {
+            switch (action)
+            {
+                case "talkToBartender":
+                    dialog.SetText("¡Hola! ¿Qué te traigo?");  // Cambiar texto del diálogo
+                    dialog.ShowLetterByLetter();
+                    break;
+
+                case "exitBar":
+                    logWriter.WriteLine($"[{DateTime.Now}] - El jugador ha salido del bar.");
+                    logWriter.Flush();
+                    break;
+
+                case "inspectCounter":
+                    dialog.SetText("El mostrador está limpio, pero hay huellas de vasos.");  // Texto descriptivo
+                    dialog.ShowLetterByLetter();
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+
 
         protected override void Draw(GameTime gameTime)
         {
@@ -98,13 +196,9 @@ namespace juegoRedes
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 
             // Dibujar la escena activa
-            sceneManager.Draw(_spriteBatch);
+            sceneManager.CurrentScene.Draw(_spriteBatch);
+            player.Draw(_spriteBatch);
 
-            // Si estamos en la escena de introducción, dibujar el botón de "Nueva Partida"
-            if (sceneManager.CurrentScene.getUid() == "intro")
-            {
-                _spriteBatch.Draw(startButton, new Vector2(500, 600), Color.White);
-            }
 
             _spriteBatch.End();
 
