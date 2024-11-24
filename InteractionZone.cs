@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 
-
-
 public class InteractionZone
 {
     public Rectangle Area { get; set; }

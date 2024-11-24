@@ -50,12 +50,12 @@ namespace juegoRedes
             playerTexture = Content.Load<Texture2D>("player");
             bartender = Content.Load<Texture2D>("barguy_front");
             door = Content.Load<Texture2D>("alfombra");
-            mostrador = Content.Load<Texture2D>("barpart");
+            mostrador = Content.Load<Texture2D>("mostrador");
             dialogSquare = Content.Load<Texture2D>("dialogSquare");
 
             string text = "Bienvenido al mundo del juego. Presiona 'Nueva Partida' para comenzar.";
             Vector2 dialogPosition = new Vector2(100, 200); // Posición del texto
-            dialog = new Dialog("Bienvenida", text, font, dialogPosition, 50);
+            dialog = new Dialog("Bienvenida", text, dialogSquare, font, dialogPosition, 50);
             dialog.Draw(_spriteBatch);
 
             string path = Directory.GetCurrentDirectory();
@@ -102,8 +102,8 @@ namespace juegoRedes
             // Definir las zonas de interacción del bar
             List<InteractionZone> interactionZones = new List<InteractionZone>
             {
-                new InteractionZone(new Rectangle(130, 70, bartender.Width, bartender.Height), "talkToBartender"),
-                new InteractionZone(new Rectangle(200, 370, door.Width, door.Height), "exitBar"),
+                new InteractionZone(new Rectangle(150, 70, bartender.Width, bartender.Height+50), "talkToBartender"),
+                new InteractionZone(new Rectangle(200, 400, door.Width, door.Height), "exitBar"),
                 new InteractionZone(new Rectangle(50, 90, mostrador.Width, mostrador.Height), "inspectCounter")
             };
 
@@ -154,7 +154,12 @@ namespace juegoRedes
             {
                 if (zone.Area.Intersects(player.Bounds))
                 {
-                    HandleInteraction(zone.Action);
+                    if(Keyboard.GetState().IsKeyDown(Keys.Space))
+                    {
+                        HandleInteraction(zone.Action);
+                        logWriter.WriteLine($"[{DateTime.Now}] - El jugador ha interactuado con {zone.Action}.");
+                        logWriter.Flush();
+                    }   
                 }
             }
 
@@ -168,13 +173,15 @@ namespace juegoRedes
             switch (action)
             {
                 case "talkToBartender":
-                    dialog.SetText("¡Hola! ¿Qué te traigo?");  // Cambiar texto del diálogo
+                    dialog.SetText("Hola! Que te traigo?");  // Cambiar texto del diálogo
                     dialog.ShowLetterByLetter();
                     break;
 
                 case "exitBar":
                     logWriter.WriteLine($"[{DateTime.Now}] - El jugador ha salido del bar.");
                     logWriter.Flush();
+                    dialog.SetText("Hola! Que te traigo?");  // Cambiar texto del diálogo
+                    dialog.ShowLetterByLetter();
                     break;
 
                 case "inspectCounter":
@@ -198,6 +205,7 @@ namespace juegoRedes
             // Dibujar la escena activa
             sceneManager.CurrentScene.Draw(_spriteBatch);
             player.Draw(_spriteBatch);
+            dialog.Draw(_spriteBatch);
 
 
             _spriteBatch.End();

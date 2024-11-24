@@ -18,7 +18,7 @@ namespace juegoRedes
         private int delay;           // Retardo entre cada letra en milisegundos
         private Texture2D dialogSquare; 
 
-        public Dialog(string title, string text, SpriteFont font, Vector2 position, int delay = 50, Texture2D dialogSquare = null)
+        public Dialog(string title, string text, Texture2D square, SpriteFont font, Vector2 position, int delay = 50, Texture2D dialogSquare = null)
         {
             this.title = title;
             this.text = text;
@@ -27,12 +27,14 @@ namespace juegoRedes
             this.delay = delay;
             this.isDisplaying = false;
             this.charIndex = 0;
+            this.dialogSquare = square;
 
         }
 
         // Lógica para mostrar el texto letra por letra
         public async void ShowLetterByLetter()
         {
+
             isDisplaying = true;
             displayedText = "";
             charIndex = 0;
@@ -50,15 +52,17 @@ namespace juegoRedes
         public void SetText(string text)
         {
             this.text = text;
-        }   
+        }
 
         // Método para dibujar el texto
         public void Draw(SpriteBatch spriteBatch)
         {
             if (!string.IsNullOrEmpty(displayedText))
             {
-                spriteBatch.DrawString(font, displayedText, position, Color.White);
+                spriteBatch.Draw(dialogSquare, new Vector2(51, 340), Color.White);
+                spriteBatch.DrawString(font, displayedText, new Vector2(65, 350), Color.Black);
             }
         }
+        
     }
 }

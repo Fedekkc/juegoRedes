@@ -59,7 +59,6 @@ namespace juegoRedes.Stages
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("lautaro puta3");
                     Console.WriteLine(e);
                 }
 
