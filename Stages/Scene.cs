@@ -24,6 +24,7 @@ namespace juegoRedes.Stages
         private bool isLocked = true;
         private bool isActive = false;
         public List<InteractionZone> InteractionZones { get; set; } = new List<InteractionZone>();
+        public List<Rectangle> limits = new List<Rectangle>();
 
 
         // Constructor con parámetros opcionales
@@ -34,7 +35,9 @@ namespace juegoRedes.Stages
             List<Dictionary<string, object>> sprites,
             List<Dictionary<string, object>> doors,
             PlayerClass.Player player,
-            bool isLocked
+            bool isLocked,
+            List<InteractionZone> interactionZones,
+            List<Rectangle> limits
         )
         {
             this.uid = uid;
@@ -45,6 +48,8 @@ namespace juegoRedes.Stages
             this.player = player;
             this.isLocked = isLocked;
             this.isActive = false;
+            this.InteractionZones = interactionZones;
+            this.limits = limits;
         }
 
         // Métodos para obtener las propiedades
@@ -95,7 +100,9 @@ namespace juegoRedes.Stages
 
             } catch (Exception e)
             {
-                Console.WriteLine("ASD " + e);
+                
+                   Console.WriteLine(e);
+
             }
 
         }
@@ -145,18 +152,16 @@ namespace juegoRedes.Stages
             // Si la escena no está bloqueada, actualizamos los sprites y las puertas
             if (!isLocked)
             {
-                // Actualizamos la posición de los sprites
+                
                 foreach (Dictionary<string, object> sprite in sprites)
                 {
-                    // Aquí puedes actualizar el sprite si tiene un método específico
-                    // Ejemplo: sprite.Update();
+                    
                 }
 
-                // Actualizamos la posición de las puertas
+                
                 foreach (Dictionary<string, object> door in doors)
                 {
-                    // Aquí puedes actualizar la puerta si tiene un método específico
-                    // Ejemplo: door.Update();
+                    
                 }
             }
         }

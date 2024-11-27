@@ -16,7 +16,8 @@ namespace juegoRedes
         private bool isDisplaying;   // Indica si el texto se está mostrando actualmente
         private int charIndex;       // Índice del carácter actual
         private int delay;           // Retardo entre cada letra en milisegundos
-        private Texture2D dialogSquare; 
+        private Texture2D dialogSquare;
+        private bool isVisible;        
 
         public Dialog(string title, string text, Texture2D square, SpriteFont font, Vector2 position, int delay = 50, Texture2D dialogSquare = null)
         {
@@ -38,6 +39,7 @@ namespace juegoRedes
             isDisplaying = true;
             displayedText = "";
             charIndex = 0;
+            isVisible = true;
 
             while (charIndex < text.Length)
             {
@@ -54,15 +56,29 @@ namespace juegoRedes
             this.text = text;
         }
 
+        public void Hide()
+        {
+            displayedText = "";
+            isVisible = false; // Cambiar la visibilidad del diálogo.
+            charIndex = 0; // Reiniciar el índice de caracteres.
+            isDisplaying = false; // Detener cualquier visualización activa.
+        }
+
+        public bool IsVisible()
+        {
+            return isVisible;
+        }
+
+
         // Método para dibujar el texto
         public void Draw(SpriteBatch spriteBatch)
         {
-            if (!string.IsNullOrEmpty(displayedText))
+            if (isVisible)
             {
                 spriteBatch.Draw(dialogSquare, new Vector2(51, 340), Color.White);
                 spriteBatch.DrawString(font, displayedText, new Vector2(65, 350), Color.Black);
             }
         }
-        
+
     }
 }

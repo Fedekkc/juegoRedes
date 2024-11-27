@@ -9,10 +9,11 @@ namespace juegoRedes.Stages
     {
         private List<Scene> scenes;
 
-        public SceneManager()
+        public SceneManager(List<Scene> scenes, Scene currentScene)
         {
-            scenes = new List<Scene>();
-            CurrentScene = null;
+            this.scenes = scenes;
+            CurrentScene = currentScene;
+            CurrentScene.OnSceneStart();  
         }
 
         // Añadir una escena a la lista
@@ -52,7 +53,6 @@ namespace juegoRedes.Stages
                     // Dibujar el fondo de la escena
                     spriteBatch.Draw(CurrentScene.getBackground(), Vector2.Zero, Color.White);
 
-                    Console.WriteLine("lautaro puta");
                     CurrentScene.Draw(spriteBatch);
 
                     

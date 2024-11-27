@@ -54,8 +54,14 @@ with.
     -->
     <CharacterRegions>
       <CharacterRegion>
-        <Start> </Start>
-        <End>~</End>
+        <Start>32</Start>
+        <End>126</End>
+        <!-- Caracteres ASCII imprimibles básicos -->
+      </CharacterRegion>
+      <CharacterRegion>
+        <Start>161</Start>
+        <End>255</End>
+        <!-- Caracteres extendidos (acentos, eñes, etc.) -->
       </CharacterRegion>
     </CharacterRegions>
     <!--

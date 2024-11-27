@@ -19,6 +19,8 @@ namespace juegoRedes.PlayerClass
         public PlayerAnimation walkDownAnim;
         public PlayerAnimation walkLeftAnim;
         public PlayerAnimation walkRightAnim;
+        public bool isInteracting = false;        
+        public bool isColliding = false;
 
         private PlayerAnimation currentAnimation;
         private string currentDirection;
@@ -46,35 +48,53 @@ namespace juegoRedes.PlayerClass
             currentDirection = "down"; // Dirección inicial
         }
 
-        public void movePlayer(string direction, int speed = 3, int screenWidth = 400, int screenHeight = 400, List<Rectangle> obstacles = null)
+        public void movePlayer(string direction, int speed = 3, int screenWidth = 400, int screenHeight = 400, List<Rectangle> obstacles = null, List<Rectangle> limits = null)
         {
             Rectangle futureBounds = this.Bounds; // Usamos los bounds actuales del jugador
+            if (isInteracting)
+            {
+                return;
+            }
+            Console.WriteLine("Moving player " + direction);
 
+            // Calculamos los límites futuros basados en la dirección
             if (direction == "up")
             {
-                futureBounds.Y -= speed; // Calcula la nueva posición futura
+                futureBounds.Y -= speed;
                 currentAnimation = walkUpAnim;
             }
             else if (direction == "down")
             {
-                futureBounds.Y += speed; // Calcula la nueva posición futura
+                futureBounds.Y += speed;
                 currentAnimation = walkDownAnim;
             }
             else if (direction == "left")
             {
-                futureBounds.X -= speed; // Calcula la nueva posición futura
+                futureBounds.X -= speed;
                 currentAnimation = walkLeftAnim;
             }
             else if (direction == "right")
             {
-                futureBounds.X += speed; // Calcula la nueva posición futura
+                futureBounds.X += speed;
                 currentAnimation = walkRightAnim;
             }
 
-            // Si hay obstáculos y el jugador está colisionando, no se mueve
-            if (obstacles != null && !IsCollidingWithObstacles(futureBounds, obstacles))
+            // Verificar colisiones con obstáculos y límites
+            bool isColliding = false;
+
+            if (obstacles != null && IsCollidingWithObstacles(futureBounds, obstacles))
             {
-                // Solo actualizamos la posición si no colisiona
+                isColliding = true;
+            }
+
+            if (limits != null && IsCollidingWithObstacles(futureBounds, limits))
+            {
+                isColliding = true;
+            }
+
+            // Solo actualizamos la posición si no colisiona
+            if (!isColliding)
+            {
                 this.x = futureBounds.X;
                 this.y = futureBounds.Y;
             }
@@ -83,6 +103,10 @@ namespace juegoRedes.PlayerClass
             this.x = Math.Clamp(this.x, 0, screenWidth - currentAnimation.CurrentFrameRectangle.Width);
             this.y = Math.Clamp(this.y, 0, screenHeight - currentAnimation.CurrentFrameRectangle.Height);
         }
+
+
+
+
 
         private bool IsCollidingWithObstacles(Rectangle futureBounds, List<Rectangle> obstacles)
         {
@@ -109,10 +133,7 @@ namespace juegoRedes.PlayerClass
             this.y = 0;
         }
 
-        public bool isColliding(Rectangle other)
-        {
-            return Bounds.Intersects(other);
-        }
+
 
         public Rectangle Bounds
         {
@@ -140,30 +161,30 @@ namespace juegoRedes.PlayerClass
             }
         }
 
-        public void Update(float deltaTime, List<Rectangle> obstacles)
+        public void Update(float deltaTime, List<Rectangle> obstacles, List<Rectangle> limits)
         {
-            Console.WriteLine("Update player");
             currentAnimation.update(deltaTime);
 
             var keyboardState = Keyboard.GetState();
 
             if (keyboardState.IsKeyDown(Keys.Up))
             {
-                movePlayer("up", obstacles: obstacles);
+                movePlayer("up", obstacles: obstacles, limits: limits);
             }
             else if (keyboardState.IsKeyDown(Keys.Down))
             {
-                movePlayer("down", obstacles: obstacles);
+                movePlayer("down", obstacles: obstacles, limits: limits);
             }
             else if (keyboardState.IsKeyDown(Keys.Left))
             {
-                movePlayer("left", obstacles: obstacles);
+                movePlayer("left", obstacles: obstacles, limits: limits);
             }
             else if (keyboardState.IsKeyDown(Keys.Right))
             {
-                movePlayer("right", obstacles: obstacles);
+                movePlayer("right", obstacles: obstacles, limits: limits);
             }
         }
+
 
 
     }
