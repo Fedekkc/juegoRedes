@@ -63,6 +63,23 @@ namespace juegoRedes.Stages
 
         public void OnSceneStart()
         {
+            if (this.Uid == "bar" || this.Uid == "crimeScene")
+            {
+                player.X = 200;
+                player.Y = 350;
+                player.Direction = "up";
+            } else if (this.Uid == "casa")
+            {
+                player.X = 200;
+                player.Y = 320;
+                player.Direction = "up";
+            } else if (this.Uid == "cancha")
+            {
+                player.X = 290;
+                player.Y = 100;
+                player.Direction = "down";
+            } 
+            
             isActive = true;
         } 
 
@@ -97,6 +114,12 @@ namespace juegoRedes.Stages
                     }
                 }
 
+                foreach (var clue in clues)
+                {
+                    spriteBatch.Draw(clue.Texture, clue.Position, Color.White);
+                    
+
+                }
 
             } catch (Exception e)
             {

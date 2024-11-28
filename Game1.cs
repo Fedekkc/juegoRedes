@@ -3,6 +3,7 @@ using juegoRedes.Stages;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,8 +22,14 @@ namespace juegoRedes
         private Texture2D door;
         private Texture2D dialogSquare;
         private Texture2D crimescene;
+        private Texture2D casa;
+        private Texture2D cancha;
         private Texture2D taburete;
+        private Texture2D clue;
+        private Texture2D mapTexture;
+        private Texture2D pointer;
         private Player player;
+        private Map map;
         private SceneManager sceneManager;  // Gestor de escenas
         private StreamWriter logWriter;    // Escritor de log
         public const int SCREEN_WIDTH = 400;
@@ -59,6 +66,27 @@ namespace juegoRedes
             dialogSquare = Content.Load<Texture2D>("dialogSquare");
             crimescene = Content.Load<Texture2D>("crimescene 2x");
             taburete = Content.Load<Texture2D>("barchair");
+            clue = Content.Load<Texture2D>("clue");
+            mapTexture = Content.Load<Texture2D>("map");
+            pointer = Content.Load<Texture2D>("pointer");
+            casa = Content.Load<Texture2D>("home2x");
+            cancha = Content.Load<Texture2D>("cancha2x");
+
+            player = new Player("BetaTester", 200, 200, playerTexture, 3, 0.1f);
+            ConfigureScenes();
+
+            List<InteractionZone> localizaciones = new List<InteractionZone>
+            {
+                new InteractionZone(new Rectangle(26, 83, 74, 35), "cancha"),
+                new InteractionZone(new Rectangle(310, 33, 42, 56), "crimeScene"),
+                new InteractionZone(new Rectangle(250, 140, 47, 50), "bar"),
+                new InteractionZone(new Rectangle(232, 294, 62, 65), "casa")
+
+            };
+
+            map = new Map(mapTexture, font, new Vector2(50, 50), localizaciones, sceneManager);
+            
+
 
             string text = "Bienvenido al mundo del juego. Presiona 'Nueva Partida' para comenzar.";
             Vector2 dialogPosition = new Vector2(100, 200); // Posición del texto
@@ -68,9 +96,9 @@ namespace juegoRedes
             logWriter = new StreamWriter(path + "../../../../Log/Log.log", true);
 
             // Configuración de escenas y elementos de juego
-            ConfigureScenes();
+            
 
-            player = new Player("BetaTester", 200, 200, playerTexture, 3, 0.1f);
+            
         }
 
         private void ConfigureScenes()
@@ -108,26 +136,32 @@ namespace juegoRedes
                 }
             };
 
+
+
             Scene barScene = new Scene(
                 "bar",
                 bar,
-                new List<Clue>(),
+                new List<Clue>
+                {
+                    new Clue("Billetera", clue, new Vector2(200, 200), "Billetera encontrada en el Piso", "12:00", "Bar", "Lupa", new Rectangle(200, 200, clue.Width, clue.Height)),
+                                      
+                },
                 sprites,
                 doors,
-                null,
+                player,
                 false,
                 new List<InteractionZone>
                 {
                     new InteractionZone(new Rectangle(150, 70, bartender.Width, bartender.Height + 50), "talkToBartender"),
-                    new InteractionZone(new Rectangle(200, 400, door.Width, door.Height), "exitBar"),
+                    new InteractionZone(new Rectangle(200, 370, door.Width, door.Height), "exit"),
                     new InteractionZone(new Rectangle(50, 90, mostrador.Width, mostrador.Height), "inspectCounter"),
                 },
                 new List<Rectangle>
                 {
                     new Rectangle(300, 34, 50, 35), // Pared derecha
-                    new Rectangle(460, 0, 30, 461), // Borde derecho
+                    new Rectangle(360, 0, 50, 461), // Borde derecho
                     new Rectangle(0, 0, 40, 461)    // Borde izquierdo
-                }
+                }                
             );
             scenes.Add(barScene);
 
@@ -137,15 +171,66 @@ namespace juegoRedes
                 new List<Clue>(),
                 new List<Dictionary<string, object>>(),
                 new List<Dictionary<string, object>>(),
-                null,
+                player,
                 false,
                 new List<InteractionZone>(),
                 new List<Rectangle>
                 {
                     new Rectangle(300, 34, 50, 55)
+
                 }
             );
             scenes.Add(crimeScene);
+
+            Scene canchaScene = new Scene(
+                "cancha",
+                cancha,
+                new List<Clue>(),
+                new List<Dictionary<string, object>>(),
+                new List<Dictionary<string, object>>(),
+                player,
+                false,
+                new List<InteractionZone>
+                {
+                    new InteractionZone(new Rectangle(292, 50, 40, 40), "exit"),
+                },
+                new List<Rectangle>
+                {
+                    new Rectangle(365, 0, 50, 400),
+                    new Rectangle(0, 0, 290, 95),
+                    new Rectangle(0, 0, 123, 275),
+                    new Rectangle(0, 0, 28, 400),
+                    new Rectangle(290, 0, 100, 45),
+                    new Rectangle(335, 45, 40, 50),
+                    new Rectangle(0, 366, 400, 50),
+
+                }
+            );  
+            scenes.Add(canchaScene);
+
+            Scene casaScene = new Scene(
+                "casa",
+                casa,
+                new List<Clue>(),
+                new List<Dictionary<string, object>>(),
+                new List<Dictionary<string, object>>(),
+                player,
+                false,
+                new List<InteractionZone>(),
+                new List<Rectangle>
+                {
+                    new Rectangle(350, 0, 50, 400),
+                    new Rectangle(0, 0, 400, 90),
+                    new Rectangle(0, 0, 50, 400),
+                    new Rectangle(50, 315, 100, 85),
+                    new Rectangle(150, 361, 105, 20),
+                    new Rectangle(255, 315, 105, 80),
+
+                    
+                }
+                );
+            scenes.Add(casaScene);
+
 
             sceneManager = new SceneManager(scenes, barScene);
         }
@@ -162,6 +247,9 @@ namespace juegoRedes
             bool EJustPressed = currentKeyboardState.IsKeyDown(Keys.E) &&
                                     !previousKeyboardState.IsKeyDown(Keys.E);
 
+            bool MJustPressed = currentKeyboardState.IsKeyDown(Keys.M) &&
+                                    !previousKeyboardState.IsKeyDown(Keys.M);
+
             List<Rectangle> obstacles = new List<Rectangle>();
             foreach (var sprite in sceneManager.CurrentScene.sprites)
             {
@@ -169,11 +257,20 @@ namespace juegoRedes
                 {
                     Texture2D texture = (Texture2D)sprite["texture"];
                     Vector2 position = (Vector2)sprite["position"];
-                    obstacles.Add(new Rectangle((int)position.X + 110, (int)position.Y, texture.Width - 125, texture.Height - 30));
+                    obstacles.Add(new Rectangle((int)position.X+10 , (int)position.Y, texture.Width-20 , texture.Height -30));
                 }
             }
 
-            player.Update((float)gameTime.ElapsedGameTime.TotalSeconds, obstacles, limits: sceneManager.CurrentScene.limits);
+            if (!map.IsVisible())
+            {
+                player.Update((float)gameTime.ElapsedGameTime.TotalSeconds, obstacles, limits: sceneManager.CurrentScene.limits);
+
+            }
+            else
+            {
+                map.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+                logWriter.WriteLine($"[{DateTime.Now}] - El jugador se ha movido a  {sceneManager.CurrentScene.Uid} " );
+            }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
@@ -181,8 +278,38 @@ namespace juegoRedes
                 Exit();
             }
 
+            if(EJustPressed)
+            {
+                
+                foreach( var clue in sceneManager.CurrentScene.GetClues())
+                {
+                    logWriter.WriteLine(clue.Area);
+                    logWriter.WriteLine(player.Bounds);
 
+                    if (clue.Area.Intersects(player.Bounds))
+                    {
+                        dialog.SetText($"Prueba encontrada {clue.Name}\n{clue.Description}");
+                        logWriter.WriteLine($"[{DateTime.Now}] - El jugador ha encontrado la pista {clue.Name}.");
+                        dialog.ShowLetterByLetter();
+                        player.isInteracting = true;
+                        break;
+                    }
+                }
+            }
 
+            if(MJustPressed)
+            {
+                if (map.IsVisible())
+                {
+                    logWriter.WriteLine($"[{DateTime.Now}] - El jugador ha cerrado el mapa.");
+                    map.Hide();
+                }
+                else
+                {
+                    logWriter.WriteLine($"[{DateTime.Now}] - El jugador ha abierto el mapa.");
+                    map.Show();
+                }
+            }
 
             if (spaceJustPressed)
             {
@@ -223,8 +350,16 @@ namespace juegoRedes
                     player.isInteracting = true;
                     break;
 
-                case "exitBar":
-                    sceneManager.ChangeScene("crimeScene");
+                case "exit":
+                    //mostrar el mapa
+                    logWriter.WriteLine($"[{DateTime.Now}] El mapa no deberia ser visible: {map.IsVisible()}");
+                    player.setPosition(new Vector2(200, 200));
+                    if (!map.IsVisible())
+                    {
+                        map.Show();
+                        logWriter.WriteLine($"[{DateTime.Now}] ESTO DEBERIA SER TRUE: {map.IsVisible()} ");
+
+                    }
                     break;
 
                 case "inspectCounter":
@@ -243,14 +378,19 @@ namespace juegoRedes
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+            
+
+            
 
             sceneManager.CurrentScene.Draw(_spriteBatch);
             player.Draw(_spriteBatch);
             if (dialog.IsVisible())
             {
                 dialog.Draw(_spriteBatch);
+            
             }
-
+            map.Draw(_spriteBatch, player.Position, pointer);
+            
             _spriteBatch.End();
 
             base.Draw(gameTime);

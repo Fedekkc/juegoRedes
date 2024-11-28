@@ -29,6 +29,36 @@ namespace juegoRedes.PlayerClass
         private int x;
         private int y;
 
+        public int X
+        {
+            get { return x; }
+            set { x = value; }
+        }
+
+        public int Y
+        {
+            get { return y; }
+            set { y = value; }
+        }
+
+        public string Direction
+        {
+            get { return currentDirection; }
+            set { currentDirection = value; }
+        }
+        private Vector2 position;
+
+        public Vector2 Position
+        {
+            get { return position; }
+            set { position = value; }
+        }
+
+        public void setPosition (Vector2 position)
+        {
+               this.position = position;
+        }
+
         public Player(string name, int x, int y, Texture2D texture, int framesPerRow, float frameTime = 0.08f)
         {
             // Constructor
@@ -139,7 +169,7 @@ namespace juegoRedes.PlayerClass
         {
             get
             {
-                return new Rectangle((int)x, (int)y, texture.Width, texture.Height);
+                return new Rectangle((int)x, (int)y, texture.Width/4, texture.Height/4);
             }
         }
 
@@ -147,6 +177,9 @@ namespace juegoRedes.PlayerClass
         public void Draw(SpriteBatch spriteBatch)
         {
             Vector2 position = new Vector2(this.x, this.y);
+            
+
+
 
             // Si el jugador está quieto, mostrar el primer frame
             if (Keyboard.GetState().GetPressedKeys().Length == 0)
